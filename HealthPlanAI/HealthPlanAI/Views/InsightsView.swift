@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModels
 
 // MARK: - Insight Model
 
@@ -264,6 +265,11 @@ struct InsightCard: View {
     let insight: HealthInsight
     @State private var isExpanded = false
 
+    @State private var aiIsWorking = false
+    @State private var aiError: String? = nil
+    @State private var aiExplanation: String? = nil
+    @State private var aiNextSteps: String? = nil
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
@@ -332,6 +338,86 @@ struct InsightCard: View {
                                 .clipShape(Capsule())
                         }
                     }
+
+                    // AI helper buttons
+                    HStack(spacing: 10) {
+                        Button {
+                            Task { await explainInsight() }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "sparkles")
+                                Text("Explain in simple terms")
+                            }
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.purple)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.purple.opacity(0.12))
+                            .clipShape(Capsule())
+                        }
+                        .disabled(aiIsWorking)
+
+                        Button {
+                            Task { await suggestNextSteps() }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "list.bullet")
+                                Text("What should I do?")
+                            }
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.blue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.blue.opacity(0.12))
+                            .clipShape(Capsule())
+                        }
+                        .disabled(aiIsWorking)
+
+                        if aiIsWorking {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(.purple)
+                        }
+                    }
+
+                    // AI result or error
+                    if let error = aiError {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(8)
+                        .background(Color.orange.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+
+                    if let explanation = aiExplanation, !explanation.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("In plain language")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+                            Text(explanation)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+
+                    if let steps = aiNextSteps, !steps.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Suggested next steps")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+                            Text(steps)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                        }
+                    }
                 }
                 .padding()
                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -339,5 +425,114 @@ struct InsightCard: View {
         }
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: - AI Helpers
+    private func availabilityErrorMessage(for availability: SystemLanguageModel.Availability) -> String {
+        switch availability {
+        case .available:
+            return ""
+        case .unavailable(.appleIntelligenceNotEnabled):
+            return "Please enable Apple Intelligence in Settings."
+        case .unavailable(.deviceNotEligible):
+            return "Apple Intelligence requires a supported device (iPhone 15 Pro or later) with iOS 26+."
+        case .unavailable(.modelNotReady):
+            return "The on-device model is downloading or not ready. Try again in a moment."
+        default:
+            return "Apple Intelligence is unavailable on this device."
+        }
+    }
+
+    private func baseInstructions() -> String {
+        return """
+        You are a helpful Health Plan explainer. Stay within these rules:
+        - Use only the information provided in the insight.
+        - Do not provide medical advice. Focus on benefits/coverage context.
+        - Be concise and clear. Avoid jargon.
+        - When discussing actions, focus on benefits navigation (e.g., check in-network, pre-auth, limits).
+        """
+    }
+
+    private func buildInsightContext() -> String {
+        var priority = ""
+        switch insight.priority {
+        case .high: priority = "high"
+        case .medium: priority = "medium"
+        case .low: priority = "low"
+        }
+        return """
+        Insight Context:
+        - Type: \(String(describing: insight.type))
+        - Priority: \(priority)
+        - Title: \(insight.title)
+        - Message: \(insight.message)
+        """
+    }
+
+    private func resetAIState() {
+        aiError = nil
+        // Keep past results so users can compare; clear only when starting a new request
+    }
+
+    private func startWork() { aiIsWorking = true }
+    private func endWork() { aiIsWorking = false }
+
+    private func makeSession(with extraInstructions: String) -> LanguageModelSession? {
+        let availability = SystemLanguageModel.default.availability
+        guard case .available = availability else {
+            aiError = availabilityErrorMessage(for: availability)
+            return nil
+        }
+        let instructions = baseInstructions() + "\n\n" + extraInstructions
+        return LanguageModelSession(instructions: instructions)
+    }
+
+    private func explainPrompt() -> String {
+        return """
+        Explain the insight plainly for a non-technical audience in <= 100 words.
+        Constraints:
+        - Keep it simple and friendly.
+        - No medical advice.
+        - Focus on what the benefit means for the member.
+        \n\(buildInsightContext())
+        """
+    }
+
+    private func nextStepsPrompt() -> String {
+        return """
+        Provide 2-3 concise, actionable next steps as bullet points (using dashes), focused on benefits navigation only. No medical advice.
+        \n\(buildInsightContext())
+        """
+    }
+
+    private func explainInstructions() -> String { "Keep responses under 100 words. Use friendly, plain language." }
+    private func nextStepsInstructions() -> String { "Return 2-3 bullet points only without markdown. Be specific and benefits-focused." }
+
+    @MainActor
+    private func explainInsight() async {
+        resetAIState()
+        startWork()
+        defer { endWork() }
+        guard let session = makeSession(with: explainInstructions()) else { return }
+        do {
+            let response = try await session.respond(to: explainPrompt())
+            self.aiExplanation = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            self.aiError = "Could not generate an explanation. Please try again. (\(error.localizedDescription))"
+        }
+    }
+
+    @MainActor
+    private func suggestNextSteps() async {
+        resetAIState()
+        startWork()
+        defer { endWork() }
+        guard let session = makeSession(with: nextStepsInstructions()) else { return }
+        do {
+            let response = try await session.respond(to: nextStepsPrompt())
+            self.aiNextSteps = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            self.aiError = "Could not generate next steps. Please try again. (\(error.localizedDescription))"
+        }
     }
 }
