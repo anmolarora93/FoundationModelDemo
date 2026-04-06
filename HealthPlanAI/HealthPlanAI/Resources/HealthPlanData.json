@@ -1,0 +1,192 @@
+{
+  "member_profile": {
+    "member_id": "MBR-98234",
+    "full_name": "John Wick",
+    "date_of_birth": "1985-03-15",
+    "relationship": "subscriber"
+  },
+  "health_plan": {
+    "plan_id": "HP-2025-PPO-500",
+    "plan_label": "PPO Select 500",
+    "plan_type": "PPO",
+    "enrollment_status": "active",
+    "effective_from": "2026-01-01",
+    "effective_through": "2026-12-31",
+    "renewal_date": "2026-01-01",
+    "group_number": "GRP-44521",
+    "group_name": "Continental Corp Benefits",
+    "network_tier": "preferred",
+    "is_self_funded_plan": false,
+    "includes_dental": true,
+    "includes_vision": true,
+    "enrollment_type": "family"
+  },
+  "financial_summary": {
+    "individual_deductible": {
+      "annual_limit": 500.00,
+      "amount_used": 125.00,
+      "amount_remaining": 375.00
+    },
+    "family_deductible": {
+      "annual_limit": 1500.00,
+      "amount_used": 300.00,
+      "amount_remaining": 1200.00
+    },
+    "individual_out_of_pocket_max": {
+      "annual_limit": 4000.00,
+      "amount_used": 450.00,
+      "amount_remaining": 3550.00
+    },
+    "family_out_of_pocket_max": {
+      "annual_limit": 8500.00,
+      "amount_used": 900.00,
+      "amount_remaining": 7600.00
+    }
+  },
+  "covered_services": [
+    {
+      "service_id": "SVC-001",
+      "service_name": "Preventive Care Visit",
+      "category": "Preventive",
+      "in_network_copay": 0.00,
+      "out_network_copay": 50.00,
+      "coinsurance_percentage": 0,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Annual wellness exams, immunizations, and health screenings at no cost when using in-network providers."
+    },
+    {
+      "service_id": "SVC-002",
+      "service_name": "Primary Care Office Visit",
+      "category": "Primary Care",
+      "in_network_copay": 25.00,
+      "out_network_copay": 60.00,
+      "coinsurance_percentage": 20,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Office visits with your primary care physician for illness, injury, or ongoing health concerns."
+    },
+    {
+      "service_id": "SVC-003",
+      "service_name": "Specialist Consultation",
+      "category": "Specialty Care",
+      "in_network_copay": 50.00,
+      "out_network_copay": 90.00,
+      "coinsurance_percentage": 30,
+      "deductible_applies": true,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Visits with medical specialists such as cardiologists, dermatologists, or orthopedists."
+    },
+    {
+      "service_id": "SVC-004",
+      "service_name": "Urgent Care",
+      "category": "Urgent Care",
+      "in_network_copay": 75.00,
+      "out_network_copay": 120.00,
+      "coinsurance_percentage": 20,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Treatment for non-life-threatening conditions that require immediate attention outside of regular office hours."
+    },
+    {
+      "service_id": "SVC-005",
+      "service_name": "Emergency Room",
+      "category": "Emergency",
+      "in_network_copay": 250.00,
+      "out_network_copay": 250.00,
+      "coinsurance_percentage": 20,
+      "deductible_applies": true,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Emergency department visits for life-threatening or severe conditions. Copay waived if admitted."
+    },
+    {
+      "service_id": "SVC-006",
+      "service_name": "Generic Prescription Drugs",
+      "category": "Pharmacy",
+      "in_network_copay": 10.00,
+      "out_network_copay": 30.00,
+      "coinsurance_percentage": 0,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "FDA-approved generic medications available at in-network pharmacies with a 30-day supply."
+    },
+    {
+      "service_id": "SVC-007",
+      "service_name": "Brand-Name Prescription Drugs",
+      "category": "Pharmacy",
+      "in_network_copay": 40.00,
+      "out_network_copay": 70.00,
+      "coinsurance_percentage": 25,
+      "deductible_applies": true,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Preferred brand-name medications when no generic alternative is available."
+    },
+    {
+      "service_id": "SVC-008",
+      "service_name": "Mental Health - Outpatient",
+      "category": "Behavioral Health",
+      "in_network_copay": 25.00,
+      "out_network_copay": 60.00,
+      "coinsurance_percentage": 20,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Individual and group therapy sessions with licensed mental health professionals."
+    },
+    {
+      "service_id": "SVC-009",
+      "service_name": "Lab Work & Diagnostics",
+      "category": "Diagnostics",
+      "in_network_copay": 0.00,
+      "out_network_copay": 40.00,
+      "coinsurance_percentage": 10,
+      "deductible_applies": true,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Blood tests, urinalysis, pathology, and other diagnostic laboratory services."
+    },
+    {
+      "service_id": "SVC-010",
+      "service_name": "Physical Therapy",
+      "category": "Rehabilitation",
+      "in_network_copay": 35.00,
+      "out_network_copay": 70.00,
+      "coinsurance_percentage": 20,
+      "deductible_applies": true,
+      "annual_visit_limit": 30,
+      "pre_authorization_required": true,
+      "description": "Outpatient physical therapy for injury recovery or chronic condition management. Limited to 30 visits per year."
+    },
+    {
+      "service_id": "SVC-011",
+      "service_name": "Telehealth Visit",
+      "category": "Virtual Care",
+      "in_network_copay": 0.00,
+      "out_network_copay": null,
+      "coinsurance_percentage": 0,
+      "deductible_applies": false,
+      "annual_visit_limit": null,
+      "pre_authorization_required": false,
+      "description": "Virtual consultations with healthcare providers via phone or video for non-emergency medical concerns."
+    },
+    {
+      "service_id": "SVC-012",
+      "service_name": "Vision Exam",
+      "category": "Vision",
+      "in_network_copay": 10.00,
+      "out_network_copay": 45.00,
+      "coinsurance_percentage": 0,
+      "deductible_applies": false,
+      "annual_visit_limit": 1,
+      "pre_authorization_required": false,
+      "description": "Routine eye examination including refraction and glaucoma screening. One exam per calendar year."
+    }
+  ]
+}
