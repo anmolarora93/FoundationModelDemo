@@ -21,14 +21,6 @@ struct ContentView: View {
                 Label("Benefits", systemImage: "list.bullet.clipboard")
             }
 
-            // ── NEW: Cost Estimator ─────────────────────────────────────
-            NavigationStack {
-                CostEstimatorView(viewModel: viewModel)
-            }
-            .tabItem {
-                Label("Estimator", systemImage: "dollarsign.circle")
-            }
-
             // ── NEW: Proactive Insights ─────────────────────────────────
             NavigationStack {
                 InsightsView(viewModel: viewModel)
@@ -57,8 +49,4 @@ struct ContentView: View {
             await viewModel.loadData()
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
