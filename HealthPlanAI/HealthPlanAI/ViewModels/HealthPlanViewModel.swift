@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import SwiftUI
 
-@MainActor
 final class HealthPlanViewModel: ObservableObject {
 
     // MARK: - Published Properties
