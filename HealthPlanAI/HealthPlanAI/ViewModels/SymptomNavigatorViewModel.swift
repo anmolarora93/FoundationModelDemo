@@ -4,17 +4,20 @@ import FoundationModels
 
 // MARK: - Symptom Result Model
 
+@Generable
 struct SymptomNavigatorResult {
     let symptom: String
     let matchedServices: [ServiceMatch]
     let summary: String
 
+    @Generable
     struct ServiceMatch: Identifiable {
         let id = UUID()
         let service: CoveredService
         let relevanceNote: String  // Why this service was matched
         let urgencyHint: UrgencyHint
 
+        @Generable
         enum UrgencyHint {
             case routine, soonish, urgent
             var label: String {
@@ -101,31 +104,14 @@ final class SymptomNavigatorViewModel: ObservableObject {
         
         let prompt = """
         The member describes this symptom or health concern: "\(symptom)"
-        
-        Based ONLY on the covered services in the plan, respond in this exact JSON format with no markdown, no extra text:
-        {
-          "summary": "A 1-2 sentence plain English overview of care options for this symptom under the plan.",
-          "matches": [
-            {
-              "service_id": "SVC-XXX",
-              "relevance_note": "Why this service is relevant to the symptom (1 sentence)",
-              "urgency": "routine|soonish|urgent"
-            }
-          ]
-        }
-        
         Only include services that are genuinely relevant. Order by most relevant first. Max 4 matches.
         Never provide medical diagnosis or medical advice. Focus purely on benefits navigation.
         """
         
         do {
-            let response = try await session.respond(to: prompt)
-            let parsed = try parseResult(
-                json: response.content,
-                symptom: symptom,
-                services: planResponse.coveredServices
-            )
-            result = parsed
+            let response = try await session.respond(to: prompt,
+                                                     generating: SymptomNavigatorResult.self)
+            result = response.content
         } catch {
             errorMessage = "Could not analyze symptom. Please try rephrasing. (\(error.localizedDescription))"
         }
@@ -139,54 +125,6 @@ final class SymptomNavigatorViewModel: ObservableObject {
         errorMessage = nil
         // Fresh session so context doesn't bleed between queries
         createSession()
-    }
-    
-    // MARK: - JSON Parsing
-    
-    private func parseResult(
-        json: String,
-        symptom: String,
-        services: [CoveredService]
-    ) throws -> SymptomNavigatorResult {
-        // Strip any accidental markdown fences
-        let clean = json
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard let data = clean.data(using: .utf8),
-              let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let summary = obj["summary"] as? String,
-              let matches = obj["matches"] as? [[String: Any]] else {
-            throw ParseError.invalidFormat
-        }
-        
-        let serviceMatches: [SymptomNavigatorResult.ServiceMatch] = matches.compactMap { match in
-            guard let serviceId = match["service_id"] as? String,
-                  let note = match["relevance_note"] as? String,
-                  let urgencyRaw = match["urgency"] as? String,
-                  let service = services.first(where: { $0.serviceId == serviceId }) else {
-                return nil
-            }
-            let urgency: SymptomNavigatorResult.ServiceMatch.UrgencyHint = {
-                switch urgencyRaw {
-                case "urgent":  return .urgent
-                case "soonish": return .soonish
-                default:        return .routine
-                }
-            }()
-            return SymptomNavigatorResult.ServiceMatch(
-                service: service,
-                relevanceNote: note,
-                urgencyHint: urgency
-            )
-        }
-        
-        return SymptomNavigatorResult(
-            symptom: symptom,
-            matchedServices: serviceMatches,
-            summary: summary
-        )
     }
     
     private enum ParseError: LocalizedError {
