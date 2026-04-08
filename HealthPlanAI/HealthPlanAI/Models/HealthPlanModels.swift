@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModels
 
 // MARK: - Root Response
 
@@ -148,7 +149,7 @@ struct FinancialBucket: Codable, Hashable {
 }
 
 // MARK: - Covered Service
-
+@Generable
 struct CoveredService: Codable, Identifiable, Hashable {
     let serviceId: String
     let serviceName: String
